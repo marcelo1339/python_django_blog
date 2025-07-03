@@ -3,6 +3,7 @@
 /djangoapp/project/local_settings.py
 gunicorn-error-log
 __localcode
+__localcode.*
 /data/
 
 # Django #
