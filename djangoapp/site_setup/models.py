@@ -51,7 +51,6 @@ class SiteSetup(models.Model):
 
         if favicon_changed:
             resize_image(self.favicon, 32)
-            
-
+               
     def __str__(self):
         return self.title
