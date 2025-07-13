@@ -24,7 +24,7 @@ class MenuLink(models.Model):
 class SiteSetup(models.Model):
     class Meta:
         verbose_name = 'Setup'
-        verbose_name_plural = 'Setup'
+        verbose_name_plural = 'Setups'
 
     title = models.CharField(max_length=65)
     description = models.CharField(max_length=255)
