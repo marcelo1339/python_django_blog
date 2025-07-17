@@ -65,6 +65,11 @@ class Category(models.Model):
         return self.name
 
 
+class PageManager(models.Manager):
+    def get_published(self):
+        return self.filter(is_published=True).order_by('-pk')
+
+
 class Page(models.Model):
     class Meta:
         verbose_name = 'Page'
@@ -77,7 +82,13 @@ class Page(models.Model):
         help_text='Marque para a página ficar visível públicamente.'
     )
     content = models.TextField()
+
+    objects = PageManager()
     
+    def get_absolute_url(self):
+        if not self.is_published:
+            return reverse('blog:index')
+        return reverse('blog:page', args=(self.slug, ))
     
     def save(self, *args, **kwargs):
 
