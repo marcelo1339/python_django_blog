@@ -4,25 +4,76 @@ from blog.models import Post, Page
 from django.db.models import Q
 from django.contrib.auth.models import User
 from django.http import Http404
+from django.views.generic import ListView
+
 
 PER_PAGE = 9
 
-def index(request):
+class PostListView(ListView):
+    template_name = 'blog/pages/index.html'
+    context_object_name = 'posts'
+    paginate_by = PER_PAGE
 
-    posts = Post.objects.get_published()       
+    queryset = Post.objects.get_published()
 
-    paginator = Paginator(posts, PER_PAGE)
-    page_number = request.GET.get("page")
-    page_obj = paginator.get_page(page_number)
+    def get_context_data(self, **kwargs):
+        
+        contexto = super().get_context_data(**kwargs)
 
-    return render(
-        request,
-        'blog/pages/index.html',
-        {
-            'page_obj': page_obj,
+        contexto.update({
             'page_title': 'Home - '
-        }
-    )
+        })
+
+        return contexto
+
+
+class CreatedByListView(PostListView):
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self._temp_context = dict()
+
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+
+        author = self._temp_context['author']
+
+        author_full_name = author.username
+        if author.first_name:
+            author_full_name = f'{author.first_name} {author.last_name}'
+        
+        page_title = f'Posts de {author_full_name} - '
+        
+        ctx.update({
+            'page_title': page_title
+        })
+
+        return ctx
+    
+    def get_queryset(self):
+        qs = super().get_queryset()
+
+        qs = qs.filter(created_by__pk=self._temp_context['author_pk'])
+        return qs
+    
+    
+    
+
+    def get(self, request, *args, **kwargs):
+        
+        author_pk = self.kwargs['author_pk']
+        author = User.objects.filter(pk=author_pk).first()
+
+        if author is None:
+            raise Http404()
+
+        self._temp_context.update({
+            'author_pk': author_pk,
+            'author': author,
+        })
+
+        return super().get(request, *args, **kwargs)
+    
 
 def created_by(request, author_pk):
 
